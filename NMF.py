@@ -1,5 +1,5 @@
 """
-Best precision so far: 42.5% on 10 users with 5 recommendations each time (chosen among ~1000 animes)
+Best precision so far: 40.4% on 100 users with 5 recommendations each time (chosen among ~1000 animes)
 """
 
 import networkx as nx
@@ -32,7 +32,7 @@ class nmf:
         for anime, user in self.G.edges():
             self.X[self.user_to_index[user], self.anime_to_index[anime]] = self.G[user][anime]['weight']
 
-        print('Computing MNF...')
+        print('Computing NMF...')
         model = NMF(n_components=n_components, init='random', random_state=0)
         W = model.fit_transform(self.X)
         H = model.components_

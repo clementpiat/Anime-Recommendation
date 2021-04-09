@@ -1,5 +1,5 @@
 """
-Best precision so far: 37.5% on 10 users with 5 recommendations each time (chosen among ~1000 animes)
+Best precision so far: 43.0% on 100 users with 5 recommendations each time (chosen among ~1000 animes)
 """
 
 import argparse
