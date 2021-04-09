@@ -12,7 +12,7 @@ def sparsity(rating):
     return 1 - n_ratings/(n_animes*n_users)
     
 
-def get_bipartite_graph(min_rating=6, sparse=True):
+def get_bipartite_graph(min_rating=6, sparse=True, as_scipy=False):
     """
     Returns a networkx bipartite graph
     min_rating: minimum rating for considering someone "liked" an anime
@@ -34,6 +34,9 @@ def get_bipartite_graph(min_rating=6, sparse=True):
             a_node = "a_" + str(row[1])
             G.add_edge(u_node, a_node, weight=row[2])
 
+    if as_scipy:
+        return nx.to_scipy_sparse_matrix(G), list(G.nodes())
+
     return G
 
 def get_test():
@@ -45,5 +48,6 @@ def get_test():
         ...
     }
     """
+    print("Getting test edges...")
     rating = pd.read_csv("data/test_rating.csv")
     return rating.groupby("user_id")["anime_id"].apply(list).to_dict()
