@@ -1,5 +1,8 @@
+"""
+Best precision so far: 37.5% on 10 users with 5 recommendations each time (chosen among ~1000 animes)
+"""
+
 import argparse
-import numpy as np
 import torch
 from torch import nn
 from torch.optim import Adam
@@ -9,7 +12,7 @@ from utils import get_bipartite_graph
 from test import testing
 
 class AutoEncoder(nn.Module):
-    def __init__(self, K=5, dim_encoder=8, learning_rate=5e-5):
+    def __init__(self, K=5, dim_encoder=16, learning_rate=5e-5):
         super(AutoEncoder, self).__init__()
         self.MSELoss = nn.MSELoss()
 
@@ -30,12 +33,11 @@ class AutoEncoder(nn.Module):
 
         self.n = len(self.user_to_index)
         self.dim = len(self.anime_to_index)
-        self.X = np.zeros((self.n, self.dim))
+        self.X = torch.zeros((self.n, self.dim), dtype=torch.float32)
 
         for anime, user in self.G.edges():
-            self.X[self.user_to_index[user], self.anime_to_index[anime]] = self.G[user][anime]['weight']
+            self.X[self.user_to_index[user], self.anime_to_index[anime]] = self.G[user][anime]['weight']/10
 
-        self.X = torch.tensor(self.X, dtype=torch.float32)/10
         self.indices = list(range(self.n))
 
         self.encoder = nn.Sequential(
@@ -55,12 +57,11 @@ class AutoEncoder(nn.Module):
     def fit(self):
         for epoch in range(1):
             print('\nEpoch', epoch+1)
-            np.random.shuffle(self.indices)
             losses = []
-            for index in tqdm(self.indices[:20000]):
-                x = self.X[index]
-                y = self.encoder(x)
-                loss = self.MSELoss(y[x > 0], x[x > 0])
+            for index in tqdm(self.indices):
+                label = self.X[index]
+                y = self.encoder(label)
+                loss = self.MSELoss(y, label)
 
                 losses.append(loss.item())
 
