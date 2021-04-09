@@ -5,11 +5,9 @@ Best precision so far: 28% on 20 users with 5 recommendations each time (chosen 
 """
 
 import networkx as nx
-from tqdm import tqdm
 import argparse
 
-from utils import get_bipartite_graph, get_test
-
+from test import test
 
 def recommend_ppr(G, user_id, K=5):
     try:
@@ -24,21 +22,7 @@ def recommend_ppr(G, user_id, K=5):
         return []
 
 def main(args):
-    G = get_bipartite_graph()
-    test = get_test()
-
-    good_recommendations, recommendations, watched = 0,0,0
-    for user_id, anime_ids in tqdm(list(test.items())[:args.n_users]):
-        recommended_anime_ids = recommend_ppr(G,user_id)
-        
-        good_recommendations += len(set(recommended_anime_ids).intersection(anime_ids))
-        recommendations += len(recommended_anime_ids)
-        watched += len(anime_ids)
-
-    print(f"Precision on {args.n_users} users: {int(good_recommendations/recommendations*1000)/10}%")
-    print(f"Recall: {int(good_recommendations/watched*1000)/10}%")
-
-    
+    test(recommend_ppr, n_users=args.n_users)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
