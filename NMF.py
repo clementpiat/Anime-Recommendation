@@ -1,7 +1,5 @@
 """
-Use Personalized Page Rank to perform recommendations.
-TODO: for now this doesn't really take into account the ratings.
-Best precision so far: 28% on 20 users with 5 recommendations each time (chosen among ~1000 animes)
+Best precision so far: 42.5% on 10 users with 5 recommendations each time (chosen among ~1000 animes)
 """
 
 import networkx as nx
