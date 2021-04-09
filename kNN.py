@@ -1,5 +1,5 @@
 """
-Best precision so far: 12.5% on 10 users with 5 recommendations each time (chosen among ~1000 animes)
+Best precision so far: 15% on 10 users with 5 recommendations each time (chosen among ~1000 animes)
 """
 
 import networkx as nx
@@ -8,6 +8,11 @@ import numpy as np
 from utils import get_bipartite_graph
 
 from test import testing
+
+def non_zero_mean(x, axis=None):
+    a = x.sum(axis=axis)
+    b = np.count_nonzero(x, axis=axis)
+    return np.divide(a, b, out=np.zeros_like(a), where=b!=0)
 
 class KNN:
     def __init__(self, K=5, n_ngh=10):
@@ -35,12 +40,16 @@ class KNN:
     def __call__(self, user_id):
         user_index = self.user_to_index[f"u_{user_id}"]
 
-        distances = (self.X @ self.X[user_index])/np.linalg.norm(self.X, axis=1)
-        nghs = (-distances).argsort()[:self.n_ngh+1][1:]
+        co_ratings = self.X * (self.X[user_index] > 0)
+        mean_co_ratings = non_zero_mean(co_ratings, axis=1)
+        centered_co_ratings = (co_ratings.T - mean_co_ratings).T * (co_ratings > 0)
+        weights = (centered_co_ratings**2).sum(axis=1)
+        cross_products = centered_co_ratings @ centered_co_ratings[user_index]
+        pearson_correlation = cross_products / np.sqrt(weights[user_index] + weights)
 
-        sum_rating = self.X[nghs].sum(axis=0)
-        n_non_zeros = np.count_nonzero(self.X[nghs], axis=0)
-        mean_ratings = np.divide(sum_rating, n_non_zeros, out=np.zeros_like(sum_rating), where=n_non_zeros!=0)
+        nghs = (-pearson_correlation).argsort()[:self.n_ngh+1][1:]
+
+        mean_ratings = non_zero_mean(self.X[nghs], axis=0)
 
         movies_index = (-mean_ratings * (self.X[user_index] == 0)).argsort()[:self.K]
         return [int(self.index_to_anime[i][2:]) for i in movies_index]
@@ -55,7 +64,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-n", "--n_users", type=int, default=10, help="number of users for validation")
-    parser.add_argument("--n_ngh", type=int, default=10, help="number of neighbors")
+    parser.add_argument("--n_ngh", type=int, default=5, help="number of neighbors")
     parser.add_argument("--K", type=int, default=5, help="number of recommendations")
 
     main(parser.parse_args())
