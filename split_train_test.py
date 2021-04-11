@@ -1,14 +1,18 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-def main(test_size=0.3, min_n_animes=30, min_n_users=3000):
+def main(test_size=0.3, min_n_animes=30, min_n_users=3000, min_rating=6):
     """
     min_n_animes: min number of animes that a user have watched
     min_n_users: min number of users/watchers for an anime 
+    min_rating: minimum rating for considering someone "liked" an anime
     In case of memory issues, consider augmenting min_n_users to reduce the number of animes in the graph
     """
     anime = pd.read_csv("data/anime.csv")
     rating = pd.read_csv("data/rating.csv")
+
+    # Filtering rating
+    rating = rating[rating.rating >= min_rating]
 
     # Filtering animes
     grouped_rating = rating.groupby("anime_id").count()
