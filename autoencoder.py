@@ -1,5 +1,10 @@
 """
-Best precision so far: 43.0% on 100 users with 5 recommendations each time (chosen among ~1000 animes)
+K=5, 200 users:
+Recommended 118 different animes in 1000 recommendations
+Shannon diversity index: 0.8662897917798497
+
+Precision on 200 users: 47.3%
+Recall: 9.9%
 """
 
 import argparse
@@ -12,7 +17,7 @@ from utils import get_bipartite_graph
 from test import testing
 
 class AutoEncoder(nn.Module):
-    def __init__(self, K=5, dim_encoder=16, learning_rate=5e-5):
+    def __init__(self, K=5, dim_encoder=8, learning_rate=3e-5):
         super(AutoEncoder, self).__init__()
         self.MSELoss = nn.MSELoss()
 
@@ -41,13 +46,17 @@ class AutoEncoder(nn.Module):
         self.indices = list(range(self.n))
 
         self.encoder = nn.Sequential(
-            nn.Linear(self.dim, 128),
+            nn.Linear(self.dim, 256),
+            nn.ReLU(inplace=True),
+            nn.Linear(256, 128),
             nn.ReLU(inplace=True),
             nn.Linear(128, dim_encoder),
             nn.ReLU(inplace=True),
             nn.Linear(dim_encoder, 128),
             nn.ReLU(inplace=True),
-            nn.Linear(128, self.dim)
+            nn.Linear(128, 256),
+            nn.ReLU(inplace=True),
+            nn.Linear(256, self.dim)
         )
 
         self.optimizer = Adam(self.parameters(), lr=learning_rate)
