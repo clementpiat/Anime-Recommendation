@@ -26,10 +26,6 @@ class PPR:
         ppr = pagerank_power(self.adj_matrix, p=0.6, personalize=personalize, tol=1e-6)
         couples = sorted(enumerate(ppr), key=lambda x: 0 if self.adj_matrix[user_index, x[0]] or self.nodes[x[0]][0]=="u" else x[1])[-self.K:]
         return list(map(lambda x: int(self.nodes[x[0]][2:]), couples))
-        
-        # ppr = nx.pagerank_scipy(G, alpha=0.7, personalization={f"u_{user_id}": 1})
-        # couples = sorted(ppr.items(), key=lambda x: 0 if G.has_edge(x[0], f"u_{user_id}") or x[0][0]=="u" else x[1])[-K:]
-        # return list(map(lambda x: int(x[0][2:]), couples))
 
 def main(args):
     testing(PPR(), n_users=args.n_users)

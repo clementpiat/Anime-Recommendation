@@ -51,3 +51,14 @@ def get_test():
     print("Getting test edges...")
     rating = pd.read_csv("data/test_rating.csv")
     return rating.groupby("user_id")["anime_id"].apply(list).to_dict()
+
+def shannon_index(c):
+    """
+    Returns the shannon index being given a counter
+    Quantifies the diversity of recommendations
+    """
+    n = sum(c.values())
+    probas = [x/n for x in c.values()]
+    index = - np.sum(probas * np.log(probas))
+    scale = np.log(len(c)) or 1
+    return index/scale
