@@ -1,10 +1,10 @@
 """
 K=5, 200 users:
-Recommended 118 different animes in 1000 recommendations
-Shannon diversity index: 0.8662897917798497
+Recommended 139 different animes in 1000 recommendations
+Shannon diversity index: 0.8747220865195117
 
-Precision on 200 users: 47.3%
-Recall: 9.9%
+Precision on 200 users: 48.7%
+Recall: 10.2%
 """
 
 import argparse
@@ -12,6 +12,7 @@ import torch
 from torch import nn
 from torch.optim import Adam
 from tqdm import tqdm
+import pandas as pd
 
 from utils import get_bipartite_graph
 from test import testing
@@ -24,6 +25,9 @@ class AutoEncoder(nn.Module):
         self.K = K
 
         self.G = get_bipartite_graph()
+
+        anime = pd.read_csv("data/anime.csv")
+        self.id_to_name = {ID: name for ID, name in zip(anime.anime_id, anime.name)}
 
         self.user_to_index = {}
         self.anime_to_index = {}
@@ -64,7 +68,7 @@ class AutoEncoder(nn.Module):
         self.fit()
 
     def fit(self):
-        for epoch in range(1):
+        for epoch in range(2):
             print('\nEpoch', epoch+1)
             losses = []
             for index in tqdm(self.indices):
@@ -88,6 +92,10 @@ class AutoEncoder(nn.Module):
         scores = self.encoder(self.X[user_index]) * (self.X[user_index] == 0)
         
         movies_index = torch.topk(scores, self.K).indices.tolist()
+
+        print('---------------------', '\n\nWatched:', [self.id_to_name[int(ID[2:])] for ID in set(self.G.neighbors(f"u_{user_id}"))])
+        print('\nReco:', [self.id_to_name[int(self.index_to_anime[i][2:])] for i in movies_index])
+
         return [int(self.index_to_anime[i][2:]) for i in movies_index]
 
         
